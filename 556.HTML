@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة الأمن الإلكتروني - مدرسة القوف</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e8f1f2;
+            direction: rtl;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #1a5276;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        h3 {
+            color: #2e86c1;
+            font-size: 18px;
+            margin: 5px 0;
+        }
+        .question {
+            margin: 25px 0;
+            font-size: 22px;
+            color: #154360;
+            font-weight: bold;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        .option {
+            background: #3498db;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .option:hover {
+            background: #2874a6;
+        }
+        .feedback {
+            margin: 20px 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .correct { color: #27ae60; }
+        .wrong { color: #c0392b; }
+        .stats {
+            margin-top: 30px;
+            padding: 20px;
+            background: #d5e8f5;
+            border-radius: 10px;
+            border: 1px solid #aed6f1;
+        }
+        button {
+            background: #16a085;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #138d75;
+        }
+        @media (max-width: 600px) {
+            .container { padding: 15px; }
+            h1 { font-size: 24px; }
+            .question { font-size: 18px; }
+            .option { padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>لعبة الأمن الإلكتروني</h1>
+        <h3>مدرسة القوف للتعليم الأساسي</h3>
+        <h3>إعداد: المعلمة هيفاء عبدالعزيز الشنفري - صعوبات التعلم</h3>
+        
+        <div class="question" id="question"></div>
+        <div class="options" id="options"></div>
+        <div class="feedback" id="feedback"></div>
+        <button id="nextBtn" style="display: none;" onclick="nextQuestion()">السؤال التالي</button>
+        
+        <div class="stats" id="stats">
+            <h2>إحصائيات التقدم</h2>
+            <p>الإجابات الصحيحة: <span id="correctCount">0</span></p>
+            <p>الإجابات الخاطئة: <span id="wrongCount">0</span></p>
+            <p>النسبة المئوية: <span id="percentage">0%</span></p>
+        </div>
+    </div>
+
+    <script>
+        // قائمة الأسئلة (يمكن لأي شخص رؤيتها عند عرض الصفحة)
+        const questions = [
+            {
+                question: "ما الذي يجب فعله عند تلقي بريد إلكتروني من مصدر غير معروف؟",
+                options: ["فتحه لمعرفة محتواه", "حذفه فوراً", "مشاركته مع الأصدقاء", "الرد عليه"],
+                correct: "حذفه فوراً"
+            },
+            {
+                question: "ما هي أفضل طريقة لإنشاء كلمة مرور قوية؟",
+                options: ["استخدام اسمك", "استخدام تاريخ ميلادك", "مزيج من حروف وأرقام ورموز", "كلمة قصيرة وسهلة"],
+                correct: "مزيج من حروف وأرقام ورموز"
+            },
+            {
+                question: "ماذا تفعل إذا تلقيت رسالة تحذير غريبة على جهازك؟",
+                options: ["النقر عليها", "إخبار شخص بالغ أو معلم", "تجاهلها", "إعادة تشغيل الجهاز"],
+                correct: "إخبار شخص بالغ أو معلم"
+            },
+            {
+                question: "لماذا يجب تحديث التطبيقات والبرامج باستمرار؟",
+                options: ["للحصول على ميزات جديدة فقط", "لحماية الجهاز من الثغرات الأمنية", "لتغيير الألوان", "لأنها مجانية"],
+                correct: "لحماية الجهاز من الثغرات الأمنية"
+            },
+            {
+                question: "ما الذي يجب تجنبه عند استخدام الإنترنت؟",
+                options: ["مشاركة كلمات المرور مع الآخرين", "استخدام مواقع تعليمية", "تحديث البرامج", "إخبار الوالدين عن نشاط غريب"],
+                correct: "مشاركة كلمات المرور مع الآخرين"
+            }
+        ];
+
+        let currentQuestion = 0;
+        let correctAnswers = 0;
+        let wrongAnswers = 0;
+
+        function loadQuestion() {
+            const q = questions[currentQuestion];
+            document.getElementById('question').textContent = q.question;
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+            q.options.forEach(option => {
+                const div = document.createElement('div');
+                div.className = 'option';
+                div.textContent = option;
+                div.onclick = () => checkAnswer(option);
+                optionsDiv.appendChild(div);
+            });
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('nextBtn').style.display = 'none';
+        }
+
+        function checkAnswer(selected) {
+            const q = questions[currentQuestion];
+            const feedback = document.getElementById('feedback');
+            if (selected === q.correct) {
+                feedback.textContent = 'إجابة صحيحة! أحسنت!';
+                feedback.className = 'feedback correct';
+                correctAnswers++;
+            } else {
+                feedback.textContent = `إجابة خاطئة! الإجابة الصحيحة هي: ${q.correct}`;
+                feedback.className = 'feedback wrong';
+                wrongAnswers++;
+            }
+            updateStats();
+            document.getElementById('nextBtn').style.display = 'block';
+            document.querySelectorAll('.option').forEach(opt => opt.onclick = null);
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+                loadQuestion();
+            } else {
+                document.getElementById('question').textContent = 'لقد انتهت اللعبة!';
+                document.getElementById('options').innerHTML = '';
+                document.getElementById('feedback').textContent = 'شكرًا للعب! تحقق من تقدمك في الإحصائيات.';
+                document.getElementById('nextBtn').style.display = 'none';
+            }
+        }
+
+        function updateStats() {
+            const total = correctAnswers + wrongAnswers;
+            const percentage = total > 0 ? (correctAnswers / total * 100).toFixed(2) : 0;
+            document.getElementById('correctCount').textContent = correctAnswers;
+            document.getElementById('wrongCount').textContent = wrongAnswers;
+            document.getElementById('percentage').textContent = `${percentage}%`;
+        }
+
+        // بدء اللعبة عند فتح الصفحة
+        loadQuestion();
+    </script>
+</body>
+</html>
